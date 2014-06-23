@@ -18,6 +18,9 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 
+-- This library implements a JSON parser and printer.
+-- See: http://json.org/
+
 -- parser
 
 local char
