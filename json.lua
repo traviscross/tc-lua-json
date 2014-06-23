@@ -21,6 +21,8 @@
 -- This library implements a JSON parser and printer.
 -- See: http://json.org/
 
+local json={}
+
 -- parser
 
 local char
@@ -178,6 +180,7 @@ function parse_json(s)
   if e then return nil,e end
   return v,nil
 end
+json.parse = parse_json
 
 -- printer
 
@@ -197,6 +200,7 @@ function json_from(x)
     return tostring(x)
   end
 end
+json.from = json_from
 
 function json_from_array(l)
   if not l then return "" end
@@ -207,6 +211,7 @@ function json_from_array(l)
   end
   return "["..(m or "").."]"
 end
+json.from_array = json_from_array
 
 function json_from_object(tab)
   if not tab then return "" end
@@ -217,3 +222,6 @@ function json_from_object(tab)
   end
   return "{"..(m or "").."}"
 end
+json.from_object = json_from_object
+
+return json
