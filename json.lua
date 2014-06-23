@@ -20,10 +20,12 @@
 
 -- parser
 
+local char
 function char(s,p)
   return string.sub(s,p,p)
 end
 
+local expect_char
 function expect_char(s,p,c)
   if char(s,p) == c then
     return c,true,nil,eat_whitespace(s,p+1)
@@ -31,6 +33,7 @@ function expect_char(s,p,c)
   return nil,true,"expected "..c.." at "..p,s,p
 end
 
+local pat_find
 function pat_find(s,p,pat)
   local n=string.find(s,pat,p)
   if n then
@@ -40,10 +43,15 @@ function pat_find(s,p,pat)
   end
 end
 
+local eat_whitespace
 function eat_whitespace(s,p)
   return s,pat_find(s,p,"[^ \t\n]")
 end
 
+local parse_string
+local parse_value
+
+local parse_object
 function parse_object(s,p)
   if char(s,p) ~= "{" then
     return nil,false,"not an object",s,p
@@ -72,6 +80,7 @@ function parse_object(s,p)
   end
 end
 
+local parse_array
 function parse_array(s,p)
   if char(s,p) ~= "[" then
     return nil,false,"not an array",s,p
@@ -96,6 +105,10 @@ function parse_array(s,p)
   end
 end
 
+local parse_symbol
+local parse_number
+
+local parse_value
 function parse_value(s,p)
   local v,a,e
   v,a,e,s,p=parse_string(s,p)
