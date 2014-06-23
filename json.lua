@@ -25,6 +25,19 @@ local json={}
 
 -- parser
 
+-- Throughout this section, parsers by convention return five values:
+--   - the parsed value
+--   - whether the value was accepted by the parser; that is, is the
+--     value definitely of this kind?
+--   - error message if a parsing error occurred or nil; set to non-nil
+--     even for unaccepted values as a higher function might be
+--     expecting a value of a particular type
+--   - the string
+--   - the position in the string at the end of the parse
+
+-- Because the string and the position offset is threaded through all
+-- calls, it can be thought of as a stream.
+
 local char
 function char(s,p)
   return string.sub(s,p,p)
