@@ -26,7 +26,7 @@ end
 
 function expect_char(s,p,c)
   if char(s,p) == c then
-    return c,true,nil,s,p+1
+    return c,true,nil,eat_whitespace(s,p+1)
   end
   return nil,true,"expected "..c.." at "..p,s,p
 end
@@ -40,14 +40,18 @@ function pat_find(s,p,pat)
   end
 end
 
+function eat_whitespace(s,p)
+  return s,pat_find(s,p,"[^ \t\n]")
+end
+
 function parse_object(s,p)
   if char(s,p) ~= "{" then
     return nil,false,"not an object",s,p
   end
-  p=p+1
+  s,p=eat_whitespace(s,p+1)
   local r={}
   if char(s,p) == "}" then
-    return r,true,nil,s,p+1
+    return r,true,nil,eat_whitespace(s,p+1)
   end
   while true do
     local k,v,a,e,_
@@ -59,9 +63,9 @@ function parse_object(s,p)
     if e then return r,a,e,s,p end
     r[k]=v
     if char(s,p) == "}" then
-      return r,true,nil,s,p+1
+      return r,true,nil,eat_whitespace(s,p+1)
     elseif char(s,p) == "," then
-      p=p+1
+      s,p=eat_whitespace(s,p+1)
     else
       return nil,true,"expected a comma or object end at "..p,s,p
     end
@@ -72,10 +76,10 @@ function parse_array(s,p)
   if char(s,p) ~= "[" then
     return nil,false,"not an array",s,p
   end
-  p=p+1
+  s,p=eat_whitespace(s,p+1)
   local r={}
   if char(s,p) == "]" then
-    return r,true,nil,s,p+1
+    return r,true,nil,eat_whitespace(s,p+1)
   end
   while true do
     local v,a,e
@@ -83,9 +87,9 @@ function parse_array(s,p)
     if e then return v,a,e,s,p end
     table.insert(r,v)
     if char(s,p) == "]" then
-      return r,true,nil,s,p+1
+      return r,true,nil,eat_whitespace(s,p+1)
     elseif char(s,p) == "," then
-      p=p+1
+      s,p=eat_whitespace(s,p+1)
     else
       return nil,true,"expected a comma or array end at "..p,s,p
     end
@@ -112,11 +116,11 @@ function parse_symbol(s,p)
     return nil,false,"not a symbol",s,p
   end
   if string.sub(s,p,p+3) == "true" then
-    return true,true,nil,s,p+4
+    return true,true,nil,eat_whitespace(s,p+4)
   elseif string.sub(s,p,p+4) == "false" then
-    return false,true,nil,s,p+5
+    return false,true,nil,eat_whitespace(s,p+5)
   elseif string.sub(s,p,p+3) == "null" then
-    return nil,true,nil,s,p+4
+    return nil,true,nil,eat_whitespace(s,p+4)
   end
   return nil,true,"invalid symbol at "..p,s,p
 end
@@ -137,7 +141,7 @@ function parse_string(s,p)
     end
     p=p+1
   end
-  return string.sub(s,i,p-1),true,nil,s,p+1
+  return string.sub(s,i,p-1),true,nil,eat_whitespace(s,p+1)
 end
 
 function parse_number(s,p)
@@ -147,7 +151,7 @@ function parse_number(s,p)
   local e=pat_find(s,p,"[^-+0-9.eE]")
   local v=tonumber(string.sub(s,p,e-1))
   if v then
-    return v,true,nil,s,e
+    return v,true,nil,eat_whitespace(s,e)
   else
     return nil,true,"invalid number value at "..p,s,p
   end
