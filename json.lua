@@ -187,9 +187,9 @@ function json_from(x)
     return "\""..x.."\""
   elseif k == "table" then
     if x[1] then
-      return json_from_list(x)
+      return json_from_array(x)
     else
-      return json_from_hash(x)
+      return json_from_object(x)
     end
   elseif k == "number" then
     return tostring(x)
@@ -198,7 +198,7 @@ function json_from(x)
   end
 end
 
-function json_from_list(l)
+function json_from_array(l)
   if not l then return "" end
   local m
   for _,v in pairs(l) do
@@ -208,7 +208,7 @@ function json_from_list(l)
   return "["..(m or "").."]"
 end
 
-function json_from_hash(tab)
+function json_from_object(tab)
   if not tab then return "" end
   local m
   for k,v in pairs(tab) do
