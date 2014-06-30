@@ -43,6 +43,7 @@ function char(s,p)
   return string.sub(s,p,p)
 end
 
+local eat_whitespace
 local expect_char
 function expect_char(s,p,c)
   if char(s,p) == c then
@@ -61,7 +62,6 @@ function pat_find(s,p,pat)
   end
 end
 
-local eat_whitespace
 function eat_whitespace(s,p)
   return s,pat_find(s,p,"[^ \t\n]")
 end
@@ -126,7 +126,6 @@ end
 local parse_symbol
 local parse_number
 
-local parse_value
 function parse_value(s,p)
   local v,a,e
   v,a,e,s,p=parse_string(s,p)
