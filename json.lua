@@ -188,6 +188,7 @@ function parse_number(s,p)
 end
 
 function parse_json(s)
+  if type(s) ~= "string" then return nil,"non-string input" end
   local v,a,e,s,p=parse_value(s,1)
   if e then return nil,e end
   return v,nil
