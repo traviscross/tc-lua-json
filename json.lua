@@ -155,23 +155,71 @@ function parse_symbol(s,p)
   return nil,true,"invalid symbol at "..p,s,p
 end
 
+local parse_unicode_escape
+function parse_unicode_escape(s,p)
+  if string.sub(s,p,p) ~= "u" then
+    return nil,false,"not a unicode escape",s,p
+  end
+  if p+4 > #s then
+    return nil,true,"unterminated unicode escape",s,p
+  end
+  local es=string.sub(s,p+1,p+4)
+  local en=tonumber("0x"..es)
+  if not en then
+    return nil,true,"invalid unicode escape",s,p
+  end
+  if en > 127 then
+    return nil,true,"unsupported unicode escape",s,p
+  end
+  return string.char(en),true,nil,s,p+5
+end
+
+local parse_escape
+function parse_escape(s,p)
+  if string.sub(s,p,p) ~= "\\" then
+    return nil,false,"not a string escape",s,p
+  end
+  if p+1 > #s then
+    return nil,true,"unterminated string escape",s,p
+  end
+  p=p+1
+  local c,r=string.sub(s,p,p),nil
+  if c=="\"" or c=="\\" or c=="/" then r=c
+  elseif c=="b" then r="\b"
+  elseif c=="f" then r="\f"
+  elseif c=="n" then r="\n"
+  elseif c=="r" then r="\r"
+  elseif c=="t" then r="\t"
+  elseif c=="u" then return parse_unicode_escape(s,p)
+  else
+    return nil,true,"invalid string escape",s,p
+  end
+  return r,true,nil,s,p+1
+end
+
 function parse_string(s,p)
   if string.sub(s,p,p) ~= "\"" then
     return nil,false,"not a string",s,p
   end
   p=p+1
-  local i=p l=#s
+  local i,l,r=p,#s,""
   while true do
-    if char(s,p) == "\\" then
-      p=p+1
-    elseif char(s,p) == "\"" then
+    local c=string.sub(s,p,p)
+    if c == "\\" then
+      local v,a,e
+      v,a,e,s,p=parse_escape(s,p)
+      if e then return v,a,e,s,p end
+      r=r..v
+    elseif c == "\"" then
       break
     elseif p >= l then
       return nil,true,"unterminated string starting at "..i-1,s,p
+    else
+      r=r..c
+      p=p+1
     end
-    p=p+1
   end
-  return string.sub(s,i,p-1),true,nil,eat_whitespace(s,p+1)
+  return r,true,nil,eat_whitespace(s,p+1)
 end
 
 function parse_number(s,p)
