@@ -248,7 +248,8 @@ json.parse = parse_json
 function json_from(x)
   local k=type(x)
   if k == "string" then
-    return "\""..x.."\""
+    local r=string.gsub(x,"[\"\\]","\\%1")
+    return "\""..r.."\""
   elseif k == "table" then
     if x[1] then
       return json_from_array(x)
