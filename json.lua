@@ -155,6 +155,39 @@ function parse_symbol(s,p)
   return nil,true,"invalid symbol at "..p,s,p
 end
 
+local utf8_char_width
+function utf8_char_width(x)
+  if x <= 0x7f then return 1,0x0,0x7f
+  elseif x <= 0x7ff then return 2,0xc0,0x1f
+  elseif x <= 0xffff then return 3,0xe0,0xf
+  elseif x <= 0x1fffff then return 4,0xf0,0x7
+  elseif x <= 0x3ffffff then return 5,0xf8,0x3
+  elseif x <= 0x7fffffff then return 6,0xfc,0x1
+  end
+end
+
+local utf8_multibyte_encode
+function utf8_multibyte_encode(x,n,flag,mask)
+  local r=""
+  for i=n,2,-1 do
+    r=string.char(bit32.bor(0x80,bit32.band(0x3f,x)))..r
+    x=bit32.rshift(x,6)
+  end
+  if x > mask then return nil end
+  r=string.char(bit32.bor(flag,bit32.band(mask,x)))..r
+  return r
+end
+
+local encode_unicode_char
+function encode_unicode_char(x)
+  local bytes,flag,mask = utf8_char_width(x)
+  if bytes == 1 then
+    return string.char(x)
+  else
+    return utf8_multibyte_encode(x,bytes,flag,mask)
+  end
+end
+
 local parse_unicode_escape
 function parse_unicode_escape(s,p)
   if string.sub(s,p,p) ~= "u" then
@@ -168,10 +201,11 @@ function parse_unicode_escape(s,p)
   if not en then
     return nil,true,"invalid unicode escape",s,p
   end
-  if en > 127 then
-    return nil,true,"unsupported unicode escape",s,p
+  local str=encode_unicode_char(en)
+  if not str then
+    return nil,true,"invalid unicode code point U+"..string.format("%x",en),s,p
   end
-  return string.char(en),true,nil,s,p+5
+  return str,true,nil,s,p+5
 end
 
 local parse_escape
