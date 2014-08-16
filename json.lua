@@ -292,6 +292,8 @@ function json_from(x)
     end
   elseif k == "number" then
     return tostring(x)
+  elseif k == "nil" then
+    return "null"
   else
     return tostring(x)
   end
